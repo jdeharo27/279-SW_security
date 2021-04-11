@@ -3,6 +3,7 @@
 #include <unistd.h>
 #include <stdio.h>
 #include <sys/socket.h>
+#include <sys/wait.h>
 #include <stdlib.h>
 #include <netinet/in.h>
 #include <string.h>
@@ -16,6 +17,8 @@ int main(int argc, char const *argv[])
     int addrlen = sizeof(address);
     char buffer[102] = {0};
     char *hello = "Hello from server";
+
+    int nobody_id = 65534;
 
     printf("execve=0x%p\n", execve);
 
@@ -55,9 +58,23 @@ int main(int argc, char const *argv[])
         perror("accept");
         exit(EXIT_FAILURE);
     }
-    valread = read( new_socket , buffer, 1024);
-    printf("%s\n",buffer );
-    send(new_socket , hello , strlen(hello) , 0 );
-    printf("Hello message sent\n");
+
+    pid_t child = fork();
+    //printf("Child: %i\n", child);
+    //printf("Uid: %x\n\n", getuid());
+    if (child == 0) {
+    	//printf("Child uid: %d\n", nobody_id)
+	if (setuid(nobody_id) == -1) {
+            perror("setuid(65534)\n");
+	}
+	valread = read( new_socket , buffer, 1024);
+    	printf("%s\n",buffer );
+    }
+    else if (child > 0) {
+        child = wait(NULL);
+        send(new_socket , hello , strlen(hello) , 0 );
+        printf("Hello message sent\n");
+    }
+
     return 0;
 }
