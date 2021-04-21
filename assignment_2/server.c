@@ -83,7 +83,7 @@ int main(int argc, char const *argv[])
 
 		return 0;
 	}
-	else {//if (getenv("SERVER_CHILD") == "True"){
+	else if (strcmp(getenv("SERVER_CHILD"), "True") == 0){
 		new_socket = atoi(getenv("SOCKET_VAL"));
 		//printf("reading from socket: %d\n", new_socket);
 		valread = read( new_socket , buffer, 1024);
